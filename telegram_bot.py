@@ -1,4 +1,6 @@
+import argparse
 import os
+
 from dotenv import load_dotenv
 from telegram.ext import Updater, MessageHandler, Filters, CommandHandler
 from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove
@@ -56,6 +58,12 @@ def cancel(update, context):
 
 
 def main():
+    parser = argparse.ArgumentParser(
+        description='Введите путь до папки с вопросами'
+    )
+    parser.add_argument('--path', help='Путь до вопросов', default='./questions')
+    args = parser.parse_args()
+    questions_path = args.path
     load_dotenv()
 
     host = os.environ.get("REDIS_HOST")
@@ -65,7 +73,7 @@ def main():
                     port=port,
                     password=password,
                     decode_responses=True)
-    file_contents = parse_question_file('./questions')
+    file_contents = parse_question_file(questions_path)
     quiz_questions = create_quiz_questions(file_contents)
     quiz_answers = create_quiz_answers(file_contents)
     tg_token = os.getenv("TELEGRAM_BOT_TOKEN")

@@ -1,3 +1,4 @@
+import argparse
 import os
 
 
@@ -30,6 +31,12 @@ def parse_question_file(path='./questions'):
 
 
 if __name__ == '__main__':
-    file_contents = parse_question_file('./questions')
+    parser = argparse.ArgumentParser(
+        description='Введите путь до папки с вопросами'
+    )
+    parser.add_argument('--path', help='Путь до вопросов', default='./questions')
+    args = parser.parse_args()
+    questions_path = args.path
+    file_contents = parse_question_file(questions_path)
     quiz_questions = create_quiz_questions(file_contents)
     quiz_answers = create_quiz_answers(file_contents)

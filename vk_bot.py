@@ -1,3 +1,4 @@
+import argparse
 import os
 import random
 
@@ -59,13 +60,19 @@ def handle_give_up(event, vk_api, chat_data, quiz_questions, quiz_answers, r, us
 
 
 def main():
+    parser = argparse.ArgumentParser(
+        description='Введите путь до папки с вопросами'
+    )
+    parser.add_argument('--path', help='Путь до вопросов', default='./questions')
+    args = parser.parse_args()
+    questions_path = args.path
     load_dotenv()
     vk_token = os.environ.get("VK_TOKEN")
     vk_session = vk.VkApi(token=vk_token)
     vk_api = vk_session.get_api()
     longpoll = VkLongPoll(vk_session)
-
-    file_contents = parse_question_file('./questions')
+    
+    file_contents = parse_question_file(questions_path)
     quiz_questions = create_quiz_questions(file_contents)
     quiz_answers = create_quiz_answers(file_contents)
     chat_data = {}
