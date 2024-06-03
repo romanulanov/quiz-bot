@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 from vk_api.keyboard import VkKeyboard, VkKeyboardColor
 from vk_api.longpoll import VkEventType, VkLongPoll
 from vk_api.utils import get_random_id
-from quiz import create_quiz_answers, create_quiz_questions, parse_question_file
+from quiz import create_quiz_answers, create_quiz_questions, fetch_question_file
 
 
 def discussion_with_bot(event, vk_api, chat_data, quiz_questions, quiz_answers, r, user_id):
@@ -36,7 +36,8 @@ def discussion_with_bot(event, vk_api, chat_data, quiz_questions, quiz_answers, 
 
 
 def handle_new_question_request(event, chat_data, quiz_questions, r, user_id):
-    question_text = quiz_questions[f'Вопрос {chat_data[user_id]["vk_question_id"]}']
+    question_id = random.choice(list(quiz_questions.keys()))
+    question_text = quiz_questions[f'Вопрос {quiz_questions[question_id]}']
     r.set(event.user_id, question_text)
     return question_text
 
@@ -72,7 +73,7 @@ def main():
     vk_api = vk_session.get_api()
     longpoll = VkLongPoll(vk_session)
     
-    file_contents = parse_question_file(questions_path)
+    file_contents = fetch_question_file(questions_path)
     quiz_questions = create_quiz_questions(file_contents)
     quiz_answers = create_quiz_answers(file_contents)
     chat_data = {}

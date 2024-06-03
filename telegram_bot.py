@@ -1,11 +1,12 @@
 import argparse
 import os
+import random
 
 from dotenv import load_dotenv
 from telegram.ext import Updater, MessageHandler, Filters, CommandHandler
 from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove
 from telegram.ext import CommandHandler, ConversationHandler, Filters, MessageHandler, Updater
-from quiz import create_quiz_answers, create_quiz_questions, parse_question_file
+from quiz import create_quiz_answers, create_quiz_questions, fetch_question_file
 import redis
 
 
@@ -24,7 +25,8 @@ def start(update, context):
 
 
 def handle_new_question_request(update, context, quiz_questions, r):
-    question_text = quiz_questions[f'Вопрос {context.chat_data["tg_question_id"]}']
+    question_id = random.choice(list(quiz_questions.keys()))
+    question_text = quiz_questions[f'Вопрос {quiz_questions[question_id]}']
     r.set(update.effective_user.id, question_text)
     context.bot.sendMessage(chat_id=update.message.chat_id, text=question_text)
     return ANSWER
@@ -73,7 +75,7 @@ def main():
                     port=port,
                     password=password,
                     decode_responses=True)
-    file_contents = parse_question_file(questions_path)
+    file_contents = fetch_question_file(questions_path)
     quiz_questions = create_quiz_questions(file_contents)
     quiz_answers = create_quiz_answers(file_contents)
     tg_token = os.getenv("TELEGRAM_BOT_TOKEN")
