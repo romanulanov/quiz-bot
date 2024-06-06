@@ -26,7 +26,7 @@ def start(update, context):
 
 def handle_new_question_request(update, context, quiz_questions, r):
     tg_question_id = random.choice(list(quiz_questions.keys()))
-    question_text = quiz_questions[f'Вопрос {quiz_questions[tg_question_id]}']
+    question_text = f'Вопрос {quiz_questions[tg_question_id]}'
     r.set(update.effective_user.id, question_text)
     context.bot.sendMessage(chat_id=update.message.chat_id, text=question_text)
     return ANSWER

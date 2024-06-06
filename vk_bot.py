@@ -37,7 +37,7 @@ def discussion_with_bot(event, vk_api, chat_data, quiz_questions, quiz_answers, 
 
 def handle_new_question_request(event, chat_data, quiz_questions, r, user_id):
     vk_question_id = random.choice(list(quiz_questions.keys()))
-    question_text = quiz_questions[f'Вопрос {quiz_questions[vk_question_id]}']
+    question_text = f'Вопрос {quiz_questions[vk_question_id]}'
     r.set(event.user_id, question_text)
     return question_text
 
