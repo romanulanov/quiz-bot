@@ -65,7 +65,7 @@ def main():
     vk_api = vk_session.get_api()
     longpoll = VkLongPoll(vk_session)
 
-    file_contents = parse_question_file('./questions')
+    file_contents = parse_question_file('opt/quiz-bot/questions')
     quiz_questions = create_quiz_questions(file_contents)
     quiz_answers = create_quiz_answers(file_contents)
     chat_data = {}

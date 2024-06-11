@@ -21,7 +21,7 @@ def create_quiz_answers(file_contents):
     return quiz_answers
 
 
-def parse_question_file(path='./questions'):
+def parse_question_file(path='/questions/'):
     file_contents = []
     for filename in os.listdir(path):
         with open(f'{path}/' + filename, 'r', encoding='KOI8-R') as file:
@@ -30,6 +30,6 @@ def parse_question_file(path='./questions'):
 
 
 if __name__ == '__main__':
-    file_contents = parse_question_file('./questions')
+    file_contents = parse_question_file('/questions/')
     quiz_questions = create_quiz_questions(file_contents)
     quiz_answers = create_quiz_answers(file_contents)

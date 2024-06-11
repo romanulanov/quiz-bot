@@ -65,7 +65,7 @@ def main():
                     port=port,
                     password=password,
                     decode_responses=True)
-    file_contents = parse_question_file('./questions')
+    file_contents = parse_question_file('opt/quiz-bot/questions')
     quiz_questions = create_quiz_questions(file_contents)
     quiz_answers = create_quiz_answers(file_contents)
     tg_token = os.getenv("TELEGRAM_BOT_TOKEN")
