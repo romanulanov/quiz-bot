@@ -22,7 +22,7 @@ def create_quiz_answers(file_contents):
     return quiz_answers
 
 
-def parse_question_file(path='/questions/'):
+def parse_question_file(path):
     file_contents = []
     for filename in os.listdir(path):
         with open(f'{path}/{filename}', 'r', encoding='KOI8-R') as file:

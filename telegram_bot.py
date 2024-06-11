@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove
 from telegram.ext import (Updater, CommandHandler, MessageHandler, Filters,
                           ConversationHandler)
-from quiz import create_quiz_answers, create_quiz_questions, fetch_question_file
+from quiz import create_quiz_answers, create_quiz_questions, parse_question_file
 import redis
 
 QUESTION, ANSWER = range(2)
@@ -119,7 +119,7 @@ def main():
     password = os.environ.get("REDIS_PASSWORD")
     r = redis.Redis(host=host, port=port, password=password, decode_responses=True)
     r.set('score', 0)
-    file_contents = fetch_question_file(questions_path='opt/quiz-bot/questions')
+    file_contents = parse_question_file(questions_path)
 
     r = redis.Redis(host=host,
                     port=port,
