@@ -23,11 +23,34 @@ PHRASES = [
     ]
 
 
+PHRASES_GIVE_UP = [
+    "Не сдавайся! Верь в себя!",
+    "Ты сможешь! Продолжай двигаться вперед!",
+    "Неважно, сколько времени уйдет, главное - не останавливайся!",
+    "Каждый шаг приближает тебя к цели!",
+    "Ты сильнее, чем думаешь! Продолжай бороться!",
+    "Помни, что важно - это не скорость, а упорство!",
+    "Самая трудная часть - это первый шаг. Ты уже сделал его!",
+    "Даже если путь к цели кажется трудным, помни, что каждый шаг приближает тебя к успеху!",
+    "Ты - настоящий боец! Продолжай идти вперед!",
+    "Ты можешь все, чего захочешь! Не останавливайся!"
+]
+
+
+def get_score(update, r):
+    score = r.get('score') 
+    update.message.reply_text(
+        f"Твой счёт: {score}")
+    return score
+
+
 def start(update, context):
-    custom_keyboard = [['Новый вопрос', 'Сдаться'], ['Счёт']]
+    custom_keyboard = [['Новый вопрос', 'Сдаться'], ['Счёт', '/start']]
     reply_markup = ReplyKeyboardMarkup(custom_keyboard)
     update.message.reply_text(
-        "Привет! Я бот для викторин!", reply_markup=reply_markup)
+        "Привет! Я бот для викторин!")
+    update.message.reply_text(
+        "Жми на кнопку Новый вопрос", reply_markup=reply_markup)
     return QUESTION
 
 
@@ -36,38 +59,45 @@ def handle_new_question_request(update, context, quiz_questions, r):
     question_id = random.choice(list(quiz_questions.keys()))
     question_text = quiz_questions[question_id]
     r.set(update.effective_user.id, question_id)
+    r.set(update.effective_user.id, get_score(update, r))
     update.message.reply_text(question_text)
     return ANSWER
 
 
 def handle_solution_attempt(update, context, quiz_answers, r):
     user_id = update.effective_user.id
-    question_id = r.get(user_id)
-    question_id = question_id[7:]
-    answer_id = f'Ответ {question_id}'
-    correct_answer = quiz_answers[answer_id]
+    answer_id = f'Ответ {user_id}' 
+    question_id = r.get(user_id) 
+    
+
+    
+    correct_answer = quiz_answers[f'Ответ {question_id}']
+
+    
     if update.message.text.lower() in correct_answer.lower():
+        r.set('score', int(r.get('score'))+1)
         update.message.reply_text('Правильно! Нажимай на новый вопрос.')
         return QUESTION
     else:
         update.message.reply_text(f'Неправильно… Попробуешь ещё раз? {correct_answer}')
         return ANSWER
+    
+    
 
 
 def handle_give_up(update, context, quiz_questions, quiz_answers, r):
+    update.message.reply_text(random.choice(PHRASES_GIVE_UP))
     user_id = update.effective_user.id
     question_id = r.get(user_id)
     question_id = question_id[7:]
-    answer_id = f'Ответ {question_id}'
-    correct_answer = quiz_answers[answer_id]
-    #correct_answer = quiz_answers.get(question_id, "Не нашёл ответ...")
-    update.message.reply_text(f"Правильный ответ: {correct_answer}")
     return handle_new_question_request(update, context, quiz_questions, r)
 
 
 def handle_show_score(update, context, quiz_questions, quiz_answers, r):
     user_id = update.effective_user.id
-    update.message.reply_text(f"Твой счёт: 0")
+    score = get_score(update, r)
+    user_id = update.effective_user.id
+    
     return ANSWER
 
 
@@ -87,7 +117,7 @@ def main():
     port = os.environ.get("REDIS_PORT")
     password = os.environ.get("REDIS_PASSWORD")
     r = redis.Redis(host=host, port=port, password=password, decode_responses=True)
-
+    r.set('score', 0)
     file_contents = fetch_question_file(questions_path)
     quiz_questions = create_quiz_questions(file_contents)
     quiz_answers = create_quiz_answers(file_contents)
