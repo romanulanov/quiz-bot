@@ -70,7 +70,7 @@ python3 quiz.py ./questions/
 
 Запуск бота в телеграм:
 ```bush
-python3 tg_bot.py
+python3 telegram_bot.py
 ```
 
 Запуск бота VK:
