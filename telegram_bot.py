@@ -83,21 +83,12 @@ def main():
     questions_path = args.path
     load_dotenv()
 
-    host = os.environ.get("REDIS_HOST")
-    port = os.environ.get("REDIS_PORT")
-    password = os.environ.get("REDIS_PASSWORD")
-<<<<<<< HEAD
     r = redis.Redis(host=host,
                     port=port,
                     password=password,
                     decode_responses=True)
 
     file_contents = parse_question_file('opt/quiz-bot/questions')
-=======
-    r = redis.Redis(host=host, port=port, password=password, decode_responses=True)
-
-    file_contents = fetch_question_file(questions_path)
->>>>>>> 5da083c715963a45c69615e897aab1162d55c793
     quiz_questions = create_quiz_questions(file_contents)
     quiz_answers = create_quiz_answers(file_contents)
 
