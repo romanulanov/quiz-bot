@@ -86,6 +86,7 @@ def main():
         decode_responses=True
     )
 
+
     for event in longpoll.listen():
         if event.type == VkEventType.MESSAGE_NEW and event.to_me:
             user_id = event.user_id
