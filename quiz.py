@@ -8,6 +8,11 @@ def create_quiz_questions(file_contents):
         rounds = file_content.split('\n\n')
         questions = [round[10:].strip(':') for round in rounds if round.strip().startswith('Вопрос')]
     for question_id, question in enumerate(questions):
+        if "раздатка" in question:
+            #question[:question.find("раздатка")+1]
+            pass
+        if "(pic:" in question:
+            pass
         quiz_questions[f'Вопрос {question_id}'] = question
     return quiz_questions
 
@@ -38,7 +43,7 @@ if __name__ == '__main__':
     parser.add_argument('--path', help='Путь до вопросов', default='./questions')
     args = parser.parse_args()
     questions_path = args.path
-    file_contents = fetch_question_file(questions_path)
+    file_contents = parse_question_file(questions_path)
 
     quiz_questions = create_quiz_questions(file_contents)
     quiz_answers = create_quiz_answers(file_contents)

@@ -4,11 +4,12 @@ import random
 
 import redis
 import vk_api as vk
+
 from dotenv import load_dotenv
 from vk_api.keyboard import VkKeyboard, VkKeyboardColor
 from vk_api.longpoll import VkEventType, VkLongPoll
 from vk_api.utils import get_random_id
-from quiz import create_quiz_answers, create_quiz_questions, fetch_question_file
+from quiz import create_quiz_answers, create_quiz_questions, parse_question_file
 
 
 def discussion_with_bot(event, vk_api, chat_data, quiz_questions, quiz_answers, r, user_id):
@@ -72,7 +73,7 @@ def main():
     vk_session = vk.VkApi(token=vk_token)
     vk_api = vk_session.get_api()
     longpoll = VkLongPoll(vk_session)
-    file_contents = parse_question_file('opt/quiz-bot/questions')
+    file_contents = parse_question_file('questions/')
     quiz_questions = create_quiz_questions(file_contents)
     quiz_answers = create_quiz_answers(file_contents)
     chat_data = {}
@@ -85,7 +86,7 @@ def main():
         password=password,
         decode_responses=True
     )
-
+    r.set('score', 0)
 
     for event in longpoll.listen():
         if event.type == VkEventType.MESSAGE_NEW and event.to_me:
@@ -96,7 +97,10 @@ def main():
                                 vk_api,
                                 chat_data,
                                 quiz_questions,
-                                quiz_answers, r, user_id)
+                                quiz_answers,
+                                r,
+                                user_id,
+                                )
 
     
 if __name__ == '__main__':

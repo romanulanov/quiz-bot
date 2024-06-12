@@ -9,6 +9,8 @@ from quiz import create_quiz_answers, create_quiz_questions, parse_question_file
 import redis
 
 QUESTION, ANSWER = range(2)
+
+
 PHRASES = [
     "Подыскиваю интересный вопрос. Минуточку...",
     "Сейчас найду что-то интересное для обсуждения.",
@@ -40,7 +42,7 @@ PHRASES_GIVE_UP = [
 def get_score(update, r):
     score = r.get('score') 
     update.message.reply_text(
-        f"Твой счёт: {score}")
+        f"Твой счёт: {score}!")
     return score
 
 
@@ -68,18 +70,15 @@ def handle_solution_attempt(update, context, quiz_answers, r):
     user_id = update.effective_user.id
     answer_id = f'Ответ {user_id}' 
     question_id = r.get(user_id) 
-    
-
-    
     correct_answer = quiz_answers[f'Ответ {question_id}']
-
-    
     if update.message.text.lower() in correct_answer.lower():
         r.set('score', int(r.get('score'))+1)
         update.message.reply_text('Правильно! Нажимай на новый вопрос.')
         return QUESTION
     else:
-        update.message.reply_text(f'Неправильно… Попробуешь ещё раз? {correct_answer}')
+        #bot.send_message(message.chat.id, f"Видно ||Не видно||", parse_mode='MarkdownV2')
+        update.message.reply_text(f'Нет, пробуй ещё. Подсказка: {correct_answer[0: random.randint(4,9)]}', 
+                                  )
         return ANSWER
     
     
@@ -97,7 +96,6 @@ def handle_show_score(update, context, quiz_questions, quiz_answers, r):
     user_id = update.effective_user.id
     score = get_score(update, r)
     user_id = update.effective_user.id
-    
     return ANSWER
 
 
@@ -113,7 +111,6 @@ def main():
     questions_path = args.path
     load_dotenv()
 
-
     host = os.environ.get("REDIS_HOST")
     port = os.environ.get("REDIS_PORT")
     password = os.environ.get("REDIS_PASSWORD")
@@ -124,7 +121,8 @@ def main():
     r = redis.Redis(host=host,
                     port=port,
                     password=password,
-                    decode_responses=True)
+                    decode_responses=True,
+                    )
 
     quiz_questions = create_quiz_questions(file_contents)
     quiz_answers = create_quiz_answers(file_contents)
