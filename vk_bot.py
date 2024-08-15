@@ -1,6 +1,7 @@
 import argparse
 import os
 import random
+import json
 
 import redis
 import vk_api as vk
@@ -50,7 +51,7 @@ def discussion_with_bot(event, vk_api, chat_data, quiz_questions, quiz_answers, 
     elif event.text == 'Сдаться':
         text = handle_give_up(event, vk_api, chat_data, quiz_questions, quiz_answers, r, user_id)
     else:
-        text = handle_solution_attempt(event, chat_data, quiz_answers,user_id)
+        text = handle_solution_attempt(event, chat_data, quiz_answers, r, user_id)
 
     vk_api.messages.send(
         user_id=event.user_id,
@@ -61,28 +62,32 @@ def discussion_with_bot(event, vk_api, chat_data, quiz_questions, quiz_answers, 
 
 
 def handle_new_question_request(event, chat_data, quiz_questions, r, user_id):
-    vk_question_id = random.choice(list(quiz_questions.keys()))
+    question_id, question = random.choice(list(quiz_questions.items()))
+    r.set(event.user_id, json.dumps({"question_id":question_id}))
     phrase = random.choice(PHRASES)
-    question_text = f'{phrase}\n{quiz_questions[vk_question_id]}'
-    r.set(event.user_id, question_text)
+    question_text = f'{phrase}\n{question}'
     return question_text
 
 
-def handle_solution_attempt(event, chat_data, quiz_answers, user_id):
-    if event.text.split('.')[0] in quiz_answers[f'Ответ {chat_data[user_id]["vk_question_id"]}']:
-        chat_data["vk_question_id"] += 1
-        return 'Правильно!'
+def handle_solution_attempt(event, chat_data, quiz_answers, r, user_id):
+    question_id = json.loads(r.get(event.user_id))["question_id"]
+    correct_answer = quiz_answers[question_id]
+    print(event.text.split('.')[0].lower())
+    if event.text.split('.')[0].lower() == correct_answer.lower():
+        return 'Правильно! Нажимай на новый вопрос.'
     else:
         return 'Неправильно… Попробуешь ещё раз?'
 
 
 def handle_give_up(event, vk_api, chat_data, quiz_questions, quiz_answers, r, user_id):
+    question_id = json.loads(r.get(event.user_id))["question_id"]
+    correct_answer = quiz_answers[question_id]
     vk_api.messages.send(
         user_id=event.user_id,
-        message=quiz_answers[f'Ответ {chat_data[user_id]["vk_question_id"]}'],
+        message=f'Ответ: {correct_answer}',
         random_id=random.randint(1, 1000)
+      
     )
-    chat_data[user_id]["vk_question_id"] += 1
     return handle_new_question_request(event, chat_data, quiz_questions, r, user_id)
 
 
@@ -111,7 +116,7 @@ def main():
         password=password,
         decode_responses=True
     )
-    r.set('score', 0)
+    
 
     for event in longpoll.listen():
         if event.type == VkEventType.MESSAGE_NEW and event.to_me:

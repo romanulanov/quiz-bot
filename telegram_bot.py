@@ -1,4 +1,5 @@
 import argparse
+import json
 import os
 import random
 from dotenv import load_dotenv
@@ -23,25 +24,6 @@ PHRASES = [
     "Сейчас придумаю что-то интересное. Подожди...",
     "Хм, дай мне секунду, подумаю над вопросом.",
     ]
-PHRASES_GIVE_UP = [
-    "Не сдавайся! Верь в себя!",
-    "Ты сможешь! Продолжай двигаться вперед!",
-    "Неважно, сколько времени уйдет, главное - не останавливайся!",
-    "Каждый шаг приближает тебя к цели!",
-    "Ты сильнее, чем думаешь! Продолжай бороться!",
-    "Помни, что важно - это не скорость, а упорство!",
-    "Самая трудная часть - это первый шаг. Ты уже сделал его!",
-    "Даже если путь к цели кажется трудным, помни, что каждый шаг приближает тебя к успеху!",
-    "Ты - настоящий боец! Продолжай идти вперед!",
-    "Ты можешь все, чего захочешь! Не останавливайся!"
-]
-
-
-def get_score(update, r):
-    score = r.get('score') 
-    update.message.reply_text(
-        f"Твой счёт: {score}!")
-    return score
 
 
 def start(update, context):
@@ -56,44 +38,33 @@ def start(update, context):
 
 def handle_new_question_request(update, context, quiz_questions, r):
     update.message.reply_text(random.choice(PHRASES))
-    question_id = random.choice(list(quiz_questions.keys()))
-    question_text = quiz_questions[question_id]
-    r.set(update.effective_user.id, question_id)
-    r.set(update.effective_user.id, get_score(update, r))
-    update.message.reply_text(question_text)
+    question_id, question = random.choice(list(quiz_questions.items()))
+    r.set(update.effective_user.id, json.dumps({"question_id":question_id}))
+    update.message.reply_text(question)
     return ANSWER
 
 
 def handle_solution_attempt(update, context, quiz_answers, r):
-    user_id = update.effective_user.id
-    answer_id = f'Ответ {user_id}' 
-    question_id = r.get(user_id) 
-    correct_answer = quiz_answers[f'Ответ {question_id}']
+    question_id = json.loads(r.get(update.effective_user.id))["question_id"]
+    correct_answer = quiz_answers[question_id]
     if update.message.text.lower() in correct_answer.lower():
-        r.set('score', int(r.get('score'))+1)
         update.message.reply_text('Правильно! Нажимай на новый вопрос.')
         return QUESTION
     else:
-        #bot.send_message(message.chat.id, f"Видно ||Не видно||", parse_mode='MarkdownV2')
         update.message.reply_text(f'Нет, пробуй ещё. Подсказка: {correct_answer[0: random.randint(4,9)]}', 
                                   )
         return ANSWER
     
-    
-
 
 def handle_give_up(update, context, quiz_questions, quiz_answers, r):
-    update.message.reply_text(random.choice(PHRASES_GIVE_UP))
-    user_id = update.effective_user.id
-    question_id = r.get(user_id)
-    question_id = question_id[7:]
+    question_id = json.loads(r.get(update.effective_user.id))["question_id"]
+    correct_answer = quiz_answers[question_id]
+    update.message.reply_text(f'Правильный ответ: {correct_answer}')
+    
     return handle_new_question_request(update, context, quiz_questions, r)
 
 
 def handle_show_score(update, context, quiz_questions, quiz_answers, r):
-    user_id = update.effective_user.id
-    score = get_score(update, r)
-    user_id = update.effective_user.id
     return ANSWER
 
 
@@ -113,7 +84,6 @@ def main():
     port = os.environ.get("REDIS_PORT")
     password = os.environ.get("REDIS_PASSWORD")
     r = redis.Redis(host=host, port=port, password=password, decode_responses=True)
-    r.set('score', 0)
     file_contents = parse_question_file(questions_path)
 
     r = redis.Redis(host=host,

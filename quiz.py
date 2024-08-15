@@ -8,12 +8,13 @@ def create_quiz_questions(file_contents):
         rounds = file_content.split('\n\n')
         questions = [round[10:].strip(':') for round in rounds if round.strip().startswith('Вопрос')]
     for question_id, question in enumerate(questions):
-        if "раздатка" in question:
-            #question[:question.find("раздатка")+1]
-            pass
-        if "(pic:" in question:
-            pass
-        quiz_questions[f'Вопрос {question_id}'] = question
+        if "pic" in question:
+            question = question[question.find(")")+2:]
+        if "[" in question:
+            question = question[question.find("]")+2:]
+        if "<" in question:
+            question = question[question.find("/>")+2:]
+        quiz_questions[question_id] = question.replace('раздатка', '').replace('\n', '')
     return quiz_questions
 
 
@@ -23,7 +24,7 @@ def create_quiz_answers(file_contents):
         rounds = file_content.split('\n\n')
         answers = [round.split('\n')[1] for round in rounds if round.split('\n')[0].startswith('Ответ')]
         for answer_id, answer in enumerate(answers):
-            quiz_answers[f'Ответ {answer_id}'] = answer
+            quiz_answers[answer_id] = answer.replace('"', '').replace('.', '')
     return quiz_answers
 
 
