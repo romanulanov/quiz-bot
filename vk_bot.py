@@ -72,7 +72,6 @@ def handle_new_question_request(event, chat_data, quiz_questions, r, user_id):
 def handle_solution_attempt(event, chat_data, quiz_answers, r, user_id):
     question_id = json.loads(r.get(event.user_id))["question_id"]
     correct_answer = quiz_answers[question_id]
-    print(event.text.split('.')[0].lower())
     if event.text.split('.')[0].lower() == correct_answer.lower():
         return 'Правильно! Нажимай на новый вопрос.'
     else:
