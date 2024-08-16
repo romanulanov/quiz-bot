@@ -37,7 +37,7 @@ PHRASES_GIVE_UP = [
     "Ты можешь все, чего захочешь! Не останавливайся!"
 ]
 
-def discussion_with_bot(event, vk_api, chat_data, quiz_questions, quiz_answers, r, user_id):
+def discussion_with_bot(event, vk_api,  quiz_questions, quiz_answers, r, user_id):
     keyboard = VkKeyboard(one_time=True)
     keyboard.add_button('Новый вопрос', color=VkKeyboardColor.PRIMARY)
     keyboard.add_button('Сдаться', color=VkKeyboardColor.NEGATIVE)
@@ -47,11 +47,11 @@ def discussion_with_bot(event, vk_api, chat_data, quiz_questions, quiz_answers, 
     if event.text == 'Начать':
         text = 'Привет! Я бот для викторин!'
     elif event.text == 'Новый вопрос':
-        text = handle_new_question_request(event, chat_data, quiz_questions, r, user_id)
+        text = handle_new_question_request(event, quiz_questions, r, user_id)
     elif event.text == 'Сдаться':
-        text = handle_give_up(event, vk_api, chat_data, quiz_questions, quiz_answers, r, user_id)
+        text = handle_give_up(event, vk_api,  quiz_questions, quiz_answers, r, user_id)
     else:
-        text = handle_solution_attempt(event, chat_data, quiz_answers, r, user_id)
+        text = handle_solution_attempt(event, quiz_answers, r, user_id)
 
     vk_api.messages.send(
         user_id=event.user_id,
@@ -61,7 +61,7 @@ def discussion_with_bot(event, vk_api, chat_data, quiz_questions, quiz_answers, 
     )
 
 
-def handle_new_question_request(event, chat_data, quiz_questions, r, user_id):
+def handle_new_question_request(event, quiz_questions, r, user_id):
     question_id, question = random.choice(list(quiz_questions.items()))
     r.set(event.user_id, json.dumps({"question_id":question_id}))
     phrase = random.choice(PHRASES)
@@ -69,7 +69,7 @@ def handle_new_question_request(event, chat_data, quiz_questions, r, user_id):
     return question_text
 
 
-def handle_solution_attempt(event, chat_data, quiz_answers, r, user_id):
+def handle_solution_attempt(event, quiz_answers, r, user_id):
     question_id = json.loads(r.get(event.user_id))["question_id"]
     correct_answer = quiz_answers[question_id]
     if event.text.split('.')[0].lower() == correct_answer.lower():
@@ -78,7 +78,7 @@ def handle_solution_attempt(event, chat_data, quiz_answers, r, user_id):
         return 'Неправильно… Попробуешь ещё раз?'
 
 
-def handle_give_up(event, vk_api, chat_data, quiz_questions, quiz_answers, r, user_id):
+def handle_give_up(event, vk_api, quiz_questions, quiz_answers, r, user_id):
     question_id = json.loads(r.get(event.user_id))["question_id"]
     correct_answer = quiz_answers[question_id]
     vk_api.messages.send(
@@ -87,7 +87,7 @@ def handle_give_up(event, vk_api, chat_data, quiz_questions, quiz_answers, r, us
         random_id=random.randint(1, 1000)
       
     )
-    return handle_new_question_request(event, chat_data, quiz_questions, r, user_id)
+    return handle_new_question_request(event, quiz_questions, r, user_id)
 
 
 def main():
@@ -105,7 +105,7 @@ def main():
     file_contents = parse_question_file('questions/')
     quiz_questions = create_quiz_questions(file_contents)
     quiz_answers = create_quiz_answers(file_contents)
-    chat_data = {}
+   
     host = os.environ.get("REDIS_HOST")
     port = os.environ.get("REDIS_PORT")
     password = os.environ.get("REDIS_PASSWORD")
@@ -120,11 +120,9 @@ def main():
     for event in longpoll.listen():
         if event.type == VkEventType.MESSAGE_NEW and event.to_me:
             user_id = event.user_id
-            if user_id not in chat_data:
-                chat_data[user_id] = {'vk_question_id': 0}
+            
             discussion_with_bot(event,
-                                vk_api,
-                                chat_data,
+                                vk_api,                                
                                 quiz_questions,
                                 quiz_answers,
                                 r,
