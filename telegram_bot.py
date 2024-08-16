@@ -83,9 +83,7 @@ def main():
     host = os.environ.get("REDIS_HOST")
     port = os.environ.get("REDIS_PORT")
     password = os.environ.get("REDIS_PASSWORD")
-    r = redis.Redis(host=host, port=port, password=password, decode_responses=True)
     file_contents = parse_question_file(questions_path)
-
     r = redis.Redis(host=host,
                     port=port,
                     password=password,
